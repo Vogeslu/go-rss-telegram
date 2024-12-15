@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"rss-telegram/internal/utils"
 	"slices"
+	"strings"
 )
 
 func (readerHandler *ReaderHandler) handleFeed(subscriptionTicker *SubscriptionTicker, feed *gofeed.Feed) error {
@@ -66,11 +67,8 @@ func (readerHandler *ReaderHandler) addGuids(subscriptionTicker *SubscriptionTic
 }
 
 func (readerHandler *ReaderHandler) notifyNewItems(subscriptionTicker *SubscriptionTicker, items []*gofeed.Item) {
-	log.Trace().Msg("Send notify")
-
 	for _, item := range items {
 		if !readerHandler.shouldSendItem(subscriptionTicker, item) {
-			log.Trace().Msg("Skip")
 			continue
 		}
 
@@ -92,16 +90,20 @@ func (readerHandler *ReaderHandler) shouldSendItem(subscriptionTicker *Subscript
 		return true
 	}
 
-	if utils.ContainsInsensitive(item.Title, pattern) {
-		return true
-	}
+	for _, patternItem := range strings.Split(pattern, ",") {
+		patternItem = strings.Trim(patternItem, " ")
 
-	if utils.ContainsInsensitive(item.Description, pattern) {
-		return true
-	}
+		if utils.ContainsInsensitive(item.Title, patternItem) {
+			return true
+		}
 
-	if utils.ContainsInsensitive(item.Link, pattern) {
-		return true
+		if utils.ContainsInsensitive(item.Description, patternItem) {
+			return true
+		}
+
+		if utils.ContainsInsensitive(item.Link, patternItem) {
+			return true
+		}
 	}
 
 	return false

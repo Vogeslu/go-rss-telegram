@@ -112,7 +112,7 @@ func (chatHandler *ChatHandler) HandleAskAddPattern(ctx context.Context, b *bot.
 	if actionData.addPattern {
 		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Enter the pattern (e. g. 'polls' to only receive items with title, url or description containing 'polls')",
+			Text:   "Enter the pattern (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma.",
 		})
 
 		actionData.step = EnterPattern
