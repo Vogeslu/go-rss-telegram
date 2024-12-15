@@ -103,5 +103,10 @@ func (subscription *Subscription) String() string {
 	urlString := subscription.URL.String()
 	date := subscription.CreationDate.Format("01-02-2006 15:04:05")
 
-	return fmt.Sprintf("%s, added %s", urlString, date)
+	patternText := "without pattern"
+	if subscription.SearchPattern != "" {
+		patternText = fmt.Sprintf("with pattern %s", subscription.SearchPattern)
+	}
+
+	return fmt.Sprintf("%s %s, added %s", urlString, patternText, date)
 }

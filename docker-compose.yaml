@@ -2,10 +2,16 @@ services:
 
   redis:
     image: "redis"
+    volumes:
+      - ./data:/data
 
   rss-telegram:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
-    env_file:
-      - ./rss-telegram.env
+    environment:
+      REDIS_HOST: redis:6379
+      BOT_TOKEN: YOUR_TOKEN
+      RSS_INTERVAL: 30
+    depends_on:
+      - redis
