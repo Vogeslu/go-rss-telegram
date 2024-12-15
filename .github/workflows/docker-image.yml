@@ -27,7 +27,7 @@ jobs:
 
       - name: Push Docker image with tag
         if: startsWith(github.ref_name, 'v')
-        run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.ref_name }}
+        run: docker tag ${{ github.ref_name }} ${{ secrets.DOCKER_IMAGE_NAME }}:latest
 
       - name: Create GitHub Release
         if: startsWith(github.ref_name, 'v')
