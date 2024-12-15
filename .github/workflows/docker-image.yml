@@ -3,11 +3,11 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,25 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build the Docker image
-        run: docker build . --file ./docker/Dockerfile --tag vogeslu/go-rss-telegram:latest
+        run: docker build . --file ./docker/Dockerfile --tag ${{ github.repository }}:latest
 
       - name: Push the Docker image
-        run: docker push vogeslu/go-rss-telegram:latest
+        run: docker push ${{ github.repository }}:latest
+
+      - name: Push Docker image with tag
+        if: startsWith(github.ref_name, 'v')
+        run: docker push ${{ github.repository }}:${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref_name, 'v')
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          body: |
+            ## Changes in this release
+            - Docker image pushed to registry: `${{ github.repository }}:${{ github.ref_name }}`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
