@@ -1,0 +1,11 @@
+services:
+
+  redis:
+    image: "redis"
+
+  rss-telegram:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    env_file:
+      - ./rss-telegram.env
