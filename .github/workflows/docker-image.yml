@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build the Docker image
-        run: docker build . --file ./docker/Dockerfile --tag your-docker-username/go-rss-telegram:latest
+        run: docker build . --file ./docker/Dockerfile --tag vogeslu/go-rss-telegram:latest
 
       - name: Push the Docker image
-        run: docker push your-docker-username/go-rss-telegram:latest
+        run: docker push vogeslu/go-rss-telegram:latest
