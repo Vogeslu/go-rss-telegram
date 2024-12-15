@@ -110,9 +110,26 @@ func (chatHandler *ChatHandler) HandleAskAddPattern(ctx context.Context, b *bot.
 	actionData.addPattern = message == "Yes"
 
 	if actionData.addPattern {
+		subscriptions, _ := chatHandler.Options.SubscriptionHandler.GetSubscriptionsFromChat(chatContext.Chat.ID)
+
+		var patternSuggestions [][]models.KeyboardButton
+
+		for _, sub := range subscriptions {
+			if sub.SearchPattern == "" {
+				continue
+			}
+
+			patternSuggestions = append(patternSuggestions, []models.KeyboardButton{
+				{
+					Text: sub.SearchPattern,
+				},
+			})
+		}
+
 		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "Enter the pattern (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma.",
+			ChatID:      update.Message.Chat.ID,
+			Text:        "Enter the pattern or select a previous one (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma.",
+			ReplyMarkup: &models.ReplyKeyboardMarkup{Keyboard: patternSuggestions, OneTimeKeyboard: true},
 		})
 
 		actionData.step = EnterPattern
