@@ -126,5 +126,19 @@ func (readerHandler *ReaderHandler) isFirstFetch(subscriptionTicker *Subscriptio
 }
 
 func itemAsMessage(item *gofeed.Item) string {
-	return fmt.Sprintf("<b>%s</b>\n\n%s\n\n%s", item.Title, item.Description, item.Link)
+	var output []string
+
+	if item.Title != "" {
+		output = append(output, fmt.Sprintf("<b>%s</b>\n", item.Title))
+	}
+
+	if item.Description != "" {
+		output = append(output, fmt.Sprintf("%s", item.Description))
+	}
+
+	if item.Link != "" {
+		output = append(output, fmt.Sprintf("\n%s", item.Link))
+	}
+
+	return strings.Join(output, "\n")
 }
