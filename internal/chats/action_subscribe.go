@@ -151,4 +151,6 @@ func (chatHandler *ChatHandler) AddSubscription(ctx context.Context, b *bot.Bot,
 		ChatID: update.Message.Chat.ID,
 		Text:   fmt.Sprintf("Subscribed to %s (%s)", actionData.url.String(), actionData.feed.Title),
 	})
+
+	chatHandler.SwitchToCancelAction(chatContext)
 }

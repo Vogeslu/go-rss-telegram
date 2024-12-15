@@ -3,7 +3,9 @@ package reader
 import (
 	"fmt"
 	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	"github.com/mmcdole/gofeed"
+	"github.com/rs/zerolog/log"
 	"rss-telegram/internal/utils"
 	"slices"
 )
@@ -64,15 +66,22 @@ func (readerHandler *ReaderHandler) addGuids(subscriptionTicker *SubscriptionTic
 }
 
 func (readerHandler *ReaderHandler) notifyNewItems(subscriptionTicker *SubscriptionTicker, items []*gofeed.Item) {
+	log.Trace().Msg("Send notify")
+
 	for _, item := range items {
 		if !readerHandler.shouldSendItem(subscriptionTicker, item) {
+			log.Trace().Msg("Skip")
 			continue
 		}
 
+		log.Trace().Msg(itemAsMessage(item))
+
 		_, _ = readerHandler.Options.BotHandler.Bot.SendMessage(readerHandler.Options.BotHandler.Options.Context, &bot.SendMessageParams{
-			ChatID: subscriptionTicker.Subscription.ChatId,
-			Text:   itemAsMessage(item),
+			ChatID:    subscriptionTicker.Subscription.ChatId,
+			Text:      itemAsMessage(item),
+			ParseMode: models.ParseModeHTML,
 		})
+
 	}
 }
 
@@ -115,5 +124,5 @@ func (readerHandler *ReaderHandler) isFirstFetch(subscriptionTicker *Subscriptio
 }
 
 func itemAsMessage(item *gofeed.Item) string {
-	return fmt.Sprintf("**%s**\n\n%s\n\n%s", item.Title, item.Description, item.Link)
+	return fmt.Sprintf("<b>%s</b>\n\n%s\n\n%s", item.Title, item.Description, item.Link)
 }

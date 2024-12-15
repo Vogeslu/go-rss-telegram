@@ -25,7 +25,7 @@ func (chatHandler *ChatHandler) PassMessageHandlerToAction(ctx context.Context, 
 	default:
 		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "Enter a command to start an action (e.g. /subscription)",
+			Text:   "Enter a command to start an action (e.g. /subscribe)",
 		})
 	}
 }
