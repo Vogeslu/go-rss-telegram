@@ -20,14 +20,14 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build the Docker image
-        run: docker build . --file ./docker/Dockerfile --tag ${{ github.repository }}:latest
+        run: docker build . --file ./docker/Dockerfile --tag ${{ secrets.DOCKER_IMAGE_NAME }}:latest
 
       - name: Push the Docker image
-        run: docker push ${{ github.repository }}:latest
+        run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}:latest
 
       - name: Push Docker image with tag
         if: startsWith(github.ref_name, 'v')
-        run: docker push ${{ github.repository }}:${{ github.ref_name }}
+        run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}:${{ github.ref_name }}
 
       - name: Create GitHub Release
         if: startsWith(github.ref_name, 'v')
