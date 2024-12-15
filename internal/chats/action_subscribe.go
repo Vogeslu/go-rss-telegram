@@ -113,6 +113,7 @@ func (chatHandler *ChatHandler) HandleAskAddPattern(ctx context.Context, b *bot.
 		subscriptions, _ := chatHandler.Options.SubscriptionHandler.GetSubscriptionsFromChat(chatContext.Chat.ID)
 
 		var patternSuggestions [][]models.KeyboardButton
+		hasSuggestions := false
 
 		for _, sub := range subscriptions {
 			if sub.SearchPattern == "" {
@@ -124,13 +125,24 @@ func (chatHandler *ChatHandler) HandleAskAddPattern(ctx context.Context, b *bot.
 					Text: sub.SearchPattern,
 				},
 			})
+
+			hasSuggestions = true
 		}
 
-		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:      update.Message.Chat.ID,
-			Text:        "Enter the pattern or select a previous one (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma.",
-			ReplyMarkup: &models.ReplyKeyboardMarkup{Keyboard: patternSuggestions, OneTimeKeyboard: true},
-		})
+		text := "Enter the pattern or select a previous one (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma."
+
+		if hasSuggestions {
+			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:      update.Message.Chat.ID,
+				Text:        text,
+				ReplyMarkup: &models.ReplyKeyboardMarkup{Keyboard: patternSuggestions, OneTimeKeyboard: true},
+			})
+		} else {
+			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   text,
+			})
+		}
 
 		actionData.step = EnterPattern
 	} else {
