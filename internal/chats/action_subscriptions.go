@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"rss-telegram/internal/utils"
 )
 
 func (chatHandler *ChatHandler) HandleSubscriptionAction(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -24,9 +25,6 @@ func (chatHandler *ChatHandler) HandleSubscriptionAction(ctx context.Context, b 
 			output += fmt.Sprintf("\n%s", subscription.String())
 		}
 
-		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   output,
-		})
+		utils.SendChunkedMessage(output, ctx, b, update.Message.Chat.ID, 4000, nil)
 	}
 }

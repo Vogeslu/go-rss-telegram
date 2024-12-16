@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"math"
 	"rss-telegram/internal/subscription"
+	"rss-telegram/internal/utils"
 	"strconv"
 )
 
@@ -44,24 +45,20 @@ func (chatHandler *ChatHandler) HandleUnsubscribeActionStart(ctx context.Context
 			output += fmt.Sprintf("\n%d - %s", i, sub.URL.String())
 		}
 
-		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:      update.Message.Chat.ID,
-			Text:        output,
-			ReplyMarkup: getReplyMarkup(actionData.options),
-		})
+		utils.SendChunkedMessage(output, ctx, b, update.Message.Chat.ID, 4000, getReplyMarkup(actionData.options))
+
 	}
 }
 
 func (chatHandler *ChatHandler) HandleUnsubscribeActionMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	chatContext := ctx.Value("chatContext").(*ChatContext)
-
-	subscriptions, _ := chatHandler.Options.SubscriptionHandler.GetSubscriptionsFromChat(chatContext.Chat.ID)
+	actionData := chatContext.ActionData.(*UnsubscribeAction)
 
 	message := update.Message.Text
 
 	var foundSubscription *subscription.Subscription = nil
 
-	for i, sub := range subscriptions {
+	for i, sub := range actionData.options {
 		if strconv.Itoa(i) == message {
 			foundSubscription = sub
 			break
@@ -71,15 +68,12 @@ func (chatHandler *ChatHandler) HandleUnsubscribeActionMessage(ctx context.Conte
 	if foundSubscription == nil {
 		output := "Please enter a valid option:\n"
 
-		for i, sub := range subscriptions {
+		for i, sub := range actionData.options {
 			output += fmt.Sprintf("\n%d - %s", i, sub.URL.String())
 		}
 
-		_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:      update.Message.Chat.ID,
-			Text:        output,
-			ReplyMarkup: getReplyMarkup(subscriptions),
-		})
+		utils.SendChunkedMessage(output, ctx, b, update.Message.Chat.ID, 4000, getReplyMarkup(actionData.options))
+
 		return
 	}
 

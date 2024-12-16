@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"math"
 	"net/url"
+	"rss-telegram/internal/utils"
 	"slices"
 	"strconv"
 )
@@ -160,11 +161,7 @@ func (chatHandler *ChatHandler) HandleAskAddPattern(ctx context.Context, b *bot.
 		if hasSuggestions {
 			text := fmt.Sprintf("Enter the pattern (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma.\n\n%s", optionsText)
 
-			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:      update.Message.Chat.ID,
-				Text:        text,
-				ReplyMarkup: &models.ReplyKeyboardMarkup{Keyboard: options, OneTimeKeyboard: true},
-			})
+			utils.SendChunkedMessage(text, ctx, b, update.Message.Chat.ID, 4000, &models.ReplyKeyboardMarkup{Keyboard: options, OneTimeKeyboard: true})
 		} else {
 			text := "Enter the pattern (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma."
 
