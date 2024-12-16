@@ -7,7 +7,10 @@ import (
 	"github.com/go-telegram/bot/models"
 	"github.com/mmcdole/gofeed"
 	"github.com/rs/zerolog/log"
+	"math"
 	"net/url"
+	"slices"
+	"strconv"
 )
 
 type SubscribeActionStep int
@@ -19,11 +22,12 @@ const (
 )
 
 type SubscribeAction struct {
-	step       SubscribeActionStep
-	url        *url.URL
-	addPattern bool
-	pattern    string
-	feed       *gofeed.Feed
+	step               SubscribeActionStep
+	url                *url.URL
+	addPattern         bool
+	patternSuggestions []string
+	pattern            string
+	feed               *gofeed.Feed
 }
 
 func (chatHandler *ChatHandler) SwitchToSubscribeAction(chatContext *ChatContext) {
@@ -112,32 +116,58 @@ func (chatHandler *ChatHandler) HandleAskAddPattern(ctx context.Context, b *bot.
 	if actionData.addPattern {
 		subscriptions, _ := chatHandler.Options.SubscriptionHandler.GetSubscriptionsFromChat(chatContext.Chat.ID)
 
-		var patternSuggestions [][]models.KeyboardButton
+		var existingPattern []string
 		hasSuggestions := false
 
-		for _, sub := range subscriptions {
+		optionsText := "You can enter the number of one of the existing pattern:\n"
+
+		for i, sub := range subscriptions {
 			if sub.SearchPattern == "" {
 				continue
 			}
 
-			patternSuggestions = append(patternSuggestions, []models.KeyboardButton{
-				{
-					Text: sub.SearchPattern,
-				},
-			})
+			if slices.Contains(existingPattern, sub.SearchPattern) {
+				continue
+			}
+
+			existingPattern = append(existingPattern, sub.SearchPattern)
+			optionsText += fmt.Sprintf("\n%d - %s", i, sub.SearchPattern)
 
 			hasSuggestions = true
 		}
 
-		text := "Enter the pattern or select a previous one (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma."
+		actionData.patternSuggestions = existingPattern
+
+		var options = make([][]models.KeyboardButton, int(math.Ceil(float64(len(existingPattern))/3)))
+
+		for i, _ := range existingPattern {
+			row := i / 3
+			position := i % 3
+
+			button := models.KeyboardButton{
+				Text: fmt.Sprintf("%d", i),
+			}
+
+			if position == 0 {
+				options[row] = []models.KeyboardButton{
+					button,
+				}
+			} else {
+				options[row] = append(options[row], button)
+			}
+		}
 
 		if hasSuggestions {
+			text := fmt.Sprintf("Enter the pattern (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma.\n\n%s", optionsText)
+
 			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID:      update.Message.Chat.ID,
 				Text:        text,
-				ReplyMarkup: &models.ReplyKeyboardMarkup{Keyboard: patternSuggestions, OneTimeKeyboard: true},
+				ReplyMarkup: &models.ReplyKeyboardMarkup{Keyboard: options, OneTimeKeyboard: true},
 			})
 		} else {
+			text := "Enter the pattern (e. g. 'polls' to only receive items with title, url or description containing 'polls')\n\nYou can add multiple words separated by a comma."
+
 			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text:   text,
@@ -155,6 +185,13 @@ func (chatHandler *ChatHandler) HandleEnterPattern(ctx context.Context, b *bot.B
 	actionData := chatContext.ActionData.(*SubscribeAction)
 
 	message := update.Message.Text
+
+	i, err := strconv.Atoi(message)
+	if err == nil {
+		if i >= 0 && i < len(actionData.patternSuggestions) {
+			message = actionData.patternSuggestions[i]
+		}
+	}
 
 	actionData.pattern = message
 

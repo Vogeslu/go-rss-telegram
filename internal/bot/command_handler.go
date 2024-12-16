@@ -22,6 +22,10 @@ func (botHandler *BotHandler) registerCommands() {
 }
 
 func (botHandler *BotHandler) startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	chatContext := ctx.Value("chatContext").(*chats.ChatContext)
+
+	log.Info().Msgf("User %d started a conversation", chatContext.Chat.ID)
+
 	_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
 		Text:   fmt.Sprintf("Hello %s\n\n/subscribe = Subscribe to a new feed\n/unsubscribe = Unsubscribe from an feed\n/subscriptions = Get active subscriptions", update.Message.Chat.Username),

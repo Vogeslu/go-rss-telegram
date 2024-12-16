@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"net/url"
 	"time"
 )
@@ -33,6 +34,8 @@ func (subscriptionHandler *SubscriptionHandler) AddSubscription(chatId int64, su
 		subscriptionHandler.ReaderEventListener.AddSubscription(subscription)
 	}
 
+	log.Info().Msgf("User %d subscribed to %s", chatId, subscription.URL.String())
+
 	return key, err
 }
 
@@ -44,6 +47,8 @@ func (subscriptionHandler *SubscriptionHandler) DeleteSubscription(chatId int64,
 	if subscriptionHandler.ReaderEventListener != nil {
 		subscriptionHandler.ReaderEventListener.RemoveSubscription(subscription)
 	}
+
+	log.Info().Msgf("User %d unsubscribed from %s", chatId, subscription.URL.String())
 }
 
 func (subscriptionHandler *SubscriptionHandler) NewSubscription(url *url.URL, chatId int64, searchPattern string) *Subscription {
