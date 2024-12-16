@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-telegram/bot"
 	"github.com/mmcdole/gofeed"
@@ -21,6 +22,7 @@ type SubscriptionTicker struct {
 
 	Parser        *gofeed.Parser
 	FailedFetches int
+	WaitTimeout   *time.Time
 
 	Lock sync.Mutex
 }
@@ -44,6 +46,16 @@ func (readerHandler *ReaderHandler) RunSubscriptionTicker(subscriptionTicker *Su
 		for {
 			select {
 			case <-subscriptionTicker.Ticker.C:
+				if subscriptionTicker.WaitTimeout != nil {
+					if subscriptionTicker.WaitTimeout.After(time.Now()) {
+						return
+					} else {
+						subscriptionTicker.Lock.Lock()
+						subscriptionTicker.WaitTimeout = nil
+						subscriptionTicker.Lock.Unlock()
+					}
+				}
+
 				if subscriptionTicker.InRequest {
 					return
 				}
@@ -73,6 +85,16 @@ func (readerHandler *ReaderHandler) RunSubscriptionTicker(subscriptionTicker *Su
 					}
 
 					subscriptionTicker.Lock.Lock()
+
+					var httpError gofeed.HTTPError
+					ok := errors.As(err, &httpError)
+					if ok && httpError.StatusCode == 429 {
+						log.Warn().Msgf("Too many requests for %s, retrying later", subscriptionTicker.URL.String())
+
+						timeout := time.Now().Add(readerHandler.Options.WaitTimeout)
+						subscriptionTicker.WaitTimeout = &timeout
+					}
+
 					subscriptionTicker.InRequest = false
 					subscriptionTicker.Lock.Unlock()
 

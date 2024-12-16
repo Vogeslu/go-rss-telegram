@@ -15,6 +15,7 @@ type ReaderHandlerOptions struct {
 	BotHandler          *bot.BotHandler
 	SubscriptionHandler *subscription.SubscriptionHandler
 	Interval            time.Duration
+	WaitTimeout         time.Duration
 }
 
 type ReaderHandler struct {

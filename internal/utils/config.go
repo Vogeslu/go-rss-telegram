@@ -12,5 +12,6 @@ func LoadConfig() error {
 		config.Int("REDIS_DB").Default(0),
 
 		config.Int("RSS_INTERVAL").Default(60),
+		config.Int("RSS_429_TIMEOUT").Default(300),
 	}, &config.LoadConfigOptions{DotEnvFile: "rss-telegram.env"})
 }

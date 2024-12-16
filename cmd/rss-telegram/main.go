@@ -68,6 +68,7 @@ func main() {
 		BotHandler:          botHandler,
 		SubscriptionHandler: subscriptionHandler,
 		Interval:            time.Duration(config.Get().Int("RSS_INTERVAL")) * time.Second,
+		WaitTimeout:         time.Duration(config.Get().Int("RSS_429_TIMEOUT")) * time.Second,
 	})
 
 	err = readerHandler.AddSubscriptions()
