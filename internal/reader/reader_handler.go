@@ -68,6 +68,7 @@ func (readerHandler *ReaderHandler) AddSubscription(subscription *subscription.S
 
 		id := uuid.New()
 
+		readerHandler.TickerIds[subscription.URL.String()] = id
 		readerHandler.Tickers[id] = ticker
 		readerHandler.RunSubscriptionTicker(ticker)
 	} else {
@@ -94,9 +95,13 @@ func (readerHandler *ReaderHandler) RemoveSubscription(subscription *subscriptio
 			ticker.Subscriptions[i] = ticker.Subscriptions[len(ticker.Subscriptions)-1]
 			ticker.Subscriptions = ticker.Subscriptions[:len(ticker.Subscriptions)-1]
 
+			log.Info().Msgf("Subscription ticker %s is used by %d other subscriptions", sub.URL.String(), len(ticker.Subscriptions))
+
 			break
 		}
-	} else if len(ticker.Subscriptions) == 0 {
+	} else if len(ticker.Subscriptions) == 1 {
+		log.Info().Msgf("Closing subscription ticker %s because no subscriptions are active", ticker.URL.String())
+
 		close(ticker.Quit)
 
 		delete(readerHandler.Tickers, id)

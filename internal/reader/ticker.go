@@ -28,6 +28,8 @@ type SubscriptionTicker struct {
 }
 
 func (readerHandler *ReaderHandler) NewSubscriptionTicker(sub *subscription.Subscription) *SubscriptionTicker {
+	log.Info().Msgf("Instantiating new subscription ticker for %s by %d", sub.URL.String(), sub.ChatId)
+
 	subscriptionTicker := &SubscriptionTicker{
 		URL:           sub.URL,
 		Subscriptions: []*subscription.Subscription{sub},
